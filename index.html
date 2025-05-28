@@ -1,0 +1,706 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>小学生算数カメラアプリ</title>
+    <style>
+        body {
+            font-family: 'Comic Sans MS', 'Hiragino Kaku Gothic Pro', 'メイリオ', sans-serif;
+            background: linear-gradient(135deg, #FFB6C1 0%, #87CEEB 50%, #98FB98 100%);
+            min-height: 100vh;
+            margin: 0;
+            padding: 20px;
+            color: #333;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 25px;
+            padding: 30px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
+            backdrop-filter: blur(10px);
+            border: 3px solid #FFD700;
+        }
+
+        h1 {
+            text-align: center;
+            color: #FF6347;
+            margin-bottom: 20px;
+            font-size: 2.8em;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.1);
+            background: linear-gradient(45deg, #FF6347, #FF1493, #9370DB);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .grade-info {
+            background: linear-gradient(135deg, #FFE4B5, #FFF8DC);
+            border: 3px solid #FFA500;
+            border-radius: 20px;
+            padding: 20px;
+            margin-bottom: 25px;
+            text-align: center;
+        }
+
+        .grade-info h2 {
+            color: #FF8C00;
+            margin: 0 0 15px 0;
+            font-size: 1.8em;
+        }
+
+        .camera-section {
+            display: flex;
+            gap: 20px;
+            margin-bottom: 30px;
+            flex-wrap: wrap;
+        }
+
+        .camera-container {
+            flex: 1;
+            min-width: 300px;
+            background: linear-gradient(135deg, #E6E6FA, #F0F8FF);
+            border-radius: 20px;
+            padding: 20px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+            border: 2px solid #9370DB;
+        }
+
+        .camera-container h3 {
+            color: #4B0082;
+            font-size: 1.4em;
+            margin-bottom: 15px;
+            text-align: center;
+        }
+
+        video, canvas {
+            width: 100%;
+            max-width: 400px;
+            height: 300px;
+            border-radius: 15px;
+            border: 4px solid #32CD32;
+            object-fit: cover;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+
+        .controls {
+            margin-top: 15px;
+            text-align: center;
+        }
+
+        button {
+            background: linear-gradient(135deg, #FF69B4, #FF1493);
+            color: white;
+            border: none;
+            padding: 15px 25px;
+            border-radius: 30px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            margin: 5px;
+            transition: all 0.3s ease;
+            box-shadow: 0 6px 20px rgba(255, 20, 147, 0.4);
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.3);
+        }
+
+        button:hover {
+            transform: translateY(-3px) scale(1.05);
+            box-shadow: 0 10px 30px rgba(255, 20, 147, 0.6);
+        }
+
+        button:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .result-section {
+            background: linear-gradient(135deg, #F0FFFF, #E0FFFF);
+            border-radius: 20px;
+            padding: 25px;
+            margin-top: 20px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+            border: 3px solid #00CED1;
+        }
+
+        .problem-text {
+            background: linear-gradient(135deg, #E1F5FE, #B3E5FC);
+            padding: 20px;
+            border-radius: 15px;
+            margin-bottom: 20px;
+            border-left: 6px solid #2196F3;
+            font-size: 1.3em;
+        }
+
+        .solution {
+            background: linear-gradient(135deg, #F3E5F5, #E1BEE7);
+            padding: 25px;
+            border-radius: 15px;
+            margin-bottom: 20px;
+            border-left: 6px solid #9C27B0;
+        }
+
+        .vertical-math {
+            font-family: 'Courier New', monospace;
+            background: #FFF;
+            padding: 15px;
+            border-radius: 10px;
+            margin: 10px 0;
+            border: 2px solid #DDD;
+            white-space: pre-line;
+            font-size: 1.1em;
+            line-height: 1.4;
+        }
+
+        .answer {
+            background: linear-gradient(135deg, #E8F5E8, #C8E6C9);
+            padding: 20px;
+            border-radius: 15px;
+            border-left: 6px solid #4CAF50;
+            font-size: 1.4em;
+            font-weight: bold;
+            text-align: center;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 20px;
+        }
+
+        .spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #FF69B4;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 15px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .error {
+            background: #FFEBEE;
+            color: #C62828;
+            padding: 20px;
+            border-radius: 15px;
+            border-left: 6px solid #F44336;
+            margin-top: 15px;
+        }
+
+        .examples {
+            background: linear-gradient(135deg, #FFF3E0, #FFE0B2);
+            padding: 25px;
+            border-radius: 20px;
+            margin-bottom: 25px;
+            border-left: 6px solid #FF9800;
+            border: 2px solid #FFB74D;
+        }
+
+        .examples h3 {
+            color: #E65100;
+            margin-top: 0;
+            font-size: 1.6em;
+        }
+
+        .examples ul {
+            margin: 15px 0;
+            padding-left: 25px;
+        }
+
+        .examples li {
+            margin: 8px 0;
+            font-size: 1.1em;
+        }
+
+        .grade-topics {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 15px;
+            margin: 20px 0;
+        }
+
+        .topic-card {
+            background: linear-gradient(135deg, #E8EAF6, #C5CAE9);
+            padding: 15px;
+            border-radius: 15px;
+            border: 2px solid #7986CB;
+            text-align: center;
+        }
+
+        .topic-card h4 {
+            color: #3F51B5;
+            margin: 0 0 10px 0;
+            font-size: 1.2em;
+        }
+
+        .step-number {
+            background: #FF69B4;
+            color: white;
+            border-radius: 50%;
+            width: 30px;
+            height: 30px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            margin-right: 10px;
+        }
+
+        @media (max-width: 768px) {
+            .camera-section {
+                flex-direction: column;
+            }
+            
+            .container {
+                padding: 20px;
+            }
+            
+            h1 {
+                font-size: 2.2em;
+            }
+            
+            .grade-topics {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>📚 小学生算数カメラアプリ 📷</h1>
+        
+        <div class="grade-info">
+            <h2>🎓 小学4年生～6年生の算数に対応！</h2>
+            <p style="font-size: 1.2em; color: #666;">カメラで算数の問題を映すと、分かりやすく解いてくれるよ！</p>
+        </div>
+
+        <div class="examples">
+            <h3>🌟 解ける問題の例</h3>
+            <div class="grade-topics">
+                <div class="topic-card">
+                    <h4>📊 4年生</h4>
+                    <ul style="text-align: left; font-size: 0.9em;">
+                        <li>大きな数の計算</li>
+                        <li>かけ算の筆算</li>
+                        <li>わり算の筆算</li>
+                        <li>小数のたし算・ひき算</li>
+                    </ul>
+                </div>
+                <div class="topic-card">
+                    <h4>📐 5年生</h4>
+                    <ul style="text-align: left; font-size: 0.9em;">
+                        <li>小数のかけ算・わり算</li>
+                        <li>分数のたし算・ひき算</li>
+                        <li>図形の面積</li>
+                        <li>百分率・歩合</li>
+                    </ul>
+                </div>
+                <div class="topic-card">
+                    <h4>📏 6年生</h4>
+                    <ul style="text-align: left; font-size: 0.9em;">
+                        <li>分数のかけ算・わり算</li>
+                        <li>比と比の値</li>
+                        <li>円の面積</li>
+                        <li>速さの問題</li>
+                    </ul>
+                </div>
+            </div>
+            
+            <h4>💡 撮影のコツ</h4>
+            <ul>
+                <li>問題全体がカメラに入るようにしてね</li>
+                <li>明るい場所で撮影しよう</li>
+                <li>数字がはっきり見えるように撮ってね</li>
+                <li>筆算は縦に並べて書いた問題を撮影してね</li>
+            </ul>
+        </div>
+
+        <div class="camera-section">
+            <div class="camera-container">
+                <h3>📹 カメラで問題を撮影</h3>
+                <video id="video" autoplay playsinline></video>
+                <div class="controls">
+                    <button id="startCamera">📷 カメラスタート</button>
+                    <button id="captureBtn" disabled>📸 写真を撮る</button>
+                </div>
+            </div>
+            
+            <div class="camera-container">
+                <h3>🖼️ 撮影した写真</h3>
+                <canvas id="canvas"></canvas>
+                <div class="controls">
+                    <button id="analyzeBtn" disabled>🔍 問題を解く</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="result-section" id="resultSection" style="display: none;">
+            <h3>✨ 解答結果</h3>
+            <div id="loadingDiv" class="loading" style="display: none;">
+                <div class="spinner"></div>
+                <p style="font-size: 1.2em; color: #FF69B4;">がんばって問題を解いているよ...</p>
+            </div>
+            <div id="results"></div>
+        </div>
+    </div>
+
+    <script>
+        let video, canvas, ctx;
+        let capturedImageData = null;
+
+        // 小学4-6年生の算数問題パターンと解法
+        const mathPatterns = {
+            // 筆算の足し算（大きな数）
+            verticalAddition: {
+                pattern: /筆算|たし算|足し算|\+/,
+                solve: (nums) => {
+                    if (nums.length >= 2) {
+                        return solveVerticalAddition(nums[0], nums[1]);
+                    }
+                    return null;
+                }
+            },
+            
+            // 筆算の引き算
+            verticalSubtraction: {
+                pattern: /筆算|ひき算|引き算|\-/,
+                solve: (nums) => {
+                    if (nums.length >= 2) {
+                        return solveVerticalSubtraction(nums[0], nums[1]);
+                    }
+                    return null;
+                }
+            },
+            
+            // 筆算のかけ算
+            verticalMultiplication: {
+                pattern: /筆算|かけ算|掛け算|×/,
+                solve: (nums) => {
+                    if (nums.length >= 2) {
+                        return solveVerticalMultiplication(nums[0], nums[1]);
+                    }
+                    return null;
+                }
+            },
+            
+            // 筆算のわり算
+            verticalDivision: {
+                pattern: /筆算|わり算|割り算|÷/,
+                solve: (nums) => {
+                    if (nums.length >= 2) {
+                        return solveVerticalDivision(nums[0], nums[1]);
+                    }
+                    return null;
+                }
+            },
+            
+            // 小数の計算
+            decimalCalculation: {
+                pattern: /小数|\./,
+                solve: (nums, operator) => {
+                    if (nums.length >= 2) {
+                        return solveDecimalCalculation(nums[0], nums[1], operator);
+                    }
+                    return null;
+                }
+            },
+            
+            // 分数の計算
+            fractionCalculation: {
+                pattern: /分数|\/|分の/,
+                solve: (expr) => {
+                    return solveFractionCalculation(expr);
+                }
+            },
+            
+            // 面積の問題
+            areaCalculation: {
+                pattern: /面積|㎡|平方|m²/,
+                solve: (nums, shape) => {
+                    return solveAreaCalculation(nums, shape);
+                }
+            },
+            
+            // 速さの問題
+            speedCalculation: {
+                pattern: /速さ|時速|分速|秒速|km\/h|m\/分/,
+                solve: (nums) => {
+                    return solveSpeedCalculation(nums);
+                }
+            }
+        };
+
+        // 筆算の足し算（詳しい解説付き）
+        function solveVerticalAddition(num1, num2) {
+            const result = num1 + num2;
+            const str1 = num1.toString();
+            const str2 = num2.toString();
+            
+            let steps = [`<span class="step-number">1</span>筆算でたし算をしましょう！`];
+            
+            // 筆算の表示
+            const maxLen = Math.max(str1.length, str2.length);
+            const padded1 = str1.padStart(maxLen + 2, ' ');
+            const padded2 = str2.padStart(maxLen + 2, ' ');
+            const paddedResult = result.toString().padStart(maxLen + 2, ' ');
+            
+            let verticalCalc = `  ${padded1}
++ ${padded2}
+${'─'.repeat(maxLen + 4)}
+  ${paddedResult}`;
+            
+            steps.push(`<div class="vertical-math">${verticalCalc}</div>`);
+            
+            // 位ごとの説明
+            let carry = 0;
+            for (let i = Math.max(str1.length, str2.length) - 1; i >= 0; i--) {
+                const digit1 = i < str1.length ? parseInt(str1[str1.length - 1 - i]) : 0;
+                const digit2 = i < str2.length ? parseInt(str2[str2.length - 1 - i]) : 0;
+                const sum = digit1 + digit2 + carry;
+                const newCarry = Math.floor(sum / 10);
+                const resultDigit = sum % 10;
+                
+                const positions = ['一の位', '十の位', '百の位', '千の位', '万の位'];
+                const position = positions[i] || `${Math.pow(10, i)}の位`;
+                
+                if (carry > 0) {
+                    steps.push(`<span class="step-number">${steps.length}</span>${position}: ${digit1} + ${digit2} + ${carry}(くり上がり) = ${sum} → ${resultDigit}を書いて${newCarry > 0 ? newCarry + 'をくり上げ' : ''}`);
+                } else {
+                    steps.push(`<span class="step-number">${steps.length}</span>${position}: ${digit1} + ${digit2} = ${sum}${newCarry > 0 ? ' → ' + resultDigit + 'を書いて' + newCarry + 'をくり上げ' : ''}`);
+                }
+                
+                carry = newCarry;
+            }
+            
+            return {
+                answer: `${result}`,
+                steps: steps,
+                explanation: "筆算では一の位から順番に計算して、10以上になったら次の位にくり上げます。位をそろえて計算するのがポイントです！"
+            };
+        }
+
+        // 筆算の引き算
+        function solveVerticalSubtraction(num1, num2) {
+            const result = num1 - num2;
+            const str1 = num1.toString();
+            const str2 = num2.toString();
+            
+            let steps = [`<span class="step-number">1</span>筆算でひき算をしましょう！`];
+            
+            const maxLen = Math.max(str1.length, str2.length);
+            const padded1 = str1.padStart(maxLen + 2, ' ');
+            const padded2 = str2.padStart(maxLen + 2, ' ');
+            const paddedResult = Math.abs(result).toString().padStart(maxLen + 2, ' ');
+            
+            let verticalCalc = `  ${padded1}
+- ${padded2}
+${'─'.repeat(maxLen + 4)}
+  ${result < 0 ? '-' : ' '}${paddedResult}`;
+            
+            steps.push(`<div class="vertical-math">${verticalCalc}</div>`);
+            
+            // 簡単な位ごとの説明
+            for (let i = Math.max(str1.length, str2.length) - 1; i >= 0; i--) {
+                const digit1 = i < str1.length ? parseInt(str1[str1.length - 1 - i]) : 0;
+                const digit2 = i < str2.length ? parseInt(str2[str2.length - 1 - i]) : 0;
+                const positions = ['一の位', '十の位', '百の位', '千の位', '万の位'];
+                const position = positions[i] || `${Math.pow(10, i)}の位`;
+                
+                if (digit1 >= digit2) {
+                    steps.push(`<span class="step-number">${steps.length}</span>${position}: ${digit1} - ${digit2} = ${digit1 - digit2}`);
+                } else if (digit1 < digit2) {
+                    steps.push(`<span class="step-number">${steps.length}</span>${position}: ${digit1} < ${digit2} なので、上の位から10をかりてきます`);
+                }
+            }
+            
+            return {
+                answer: `${result}`,
+                steps: steps,
+                explanation: "筆算のひき算では、上の数が小さいときは上の位から10をかりてきます。位をそろえて計算しましょう！"
+            };
+        }
+
+        // 筆算のかけ算
+        function solveVerticalMultiplication(num1, num2) {
+            const result = num1 * num2;
+            let steps = [`<span class="step-number">1</span>筆算でかけ算をしましょう！`];
+            
+            const str1 = num1.toString();
+            const str2 = num2.toString();
+            
+            if (str2.length === 1) {
+                // 1桁のかけ算
+                const maxLen = Math.max(str1.length, result.toString().length);
+                let verticalCalc = `  ${str1.padStart(maxLen + 2, ' ')}
+× ${str2.padStart(maxLen + 2, ' ')}
+${'─'.repeat(maxLen + 4)}
+  ${result.toString().padStart(maxLen + 2, ' ')}`;
+                
+                steps.push(`<div class="vertical-math">${verticalCalc}</div>`);
+                steps.push(`<span class="step-number">2</span>${num1} × ${num2} = ${result}`);
+                
+            } else {
+                // 2桁以上のかけ算
+                let partialResults = [];
+                let totalMaxLen = result.toString().length + 2;
+                
+                let verticalCalc = `  ${str1.padStart(totalMaxLen, ' ')}
+× ${str2.padStart(totalMaxLen, ' ')}
+${'─'.repeat(totalMaxLen + 2)}`;
+                
+                for (let i = str2.length - 1; i >= 0; i--) {
+                    const digit = parseInt(str2[i]);
+                    const position = str2.length - 1 - i;
+                    const partial = num1 * digit * Math.pow(10, position);
+                    partialResults.push(partial);
+                    
+                    if (partial > 0) {
+                        verticalCalc += `\n  ${partial.toString().padStart(totalMaxLen, ' ')}`;
+                        const positions = ['', '十', '百', '千'];
+                        const posName = positions[position] || `${Math.pow(10, position)}`;
+                        steps.push(`<span class="step-number">${steps.length}</span>${num1} × ${digit}${position > 0 ? '(' + posName + 'の位)' : ''} = ${partial}`);
+                    }
+                }
+                
+                verticalCalc += `\n${'─'.repeat(totalMaxLen + 2)}`;
+                verticalCalc += `\n  ${result.toString().padStart(totalMaxLen, ' ')}`;
+                
+                steps.splice(1, 0, `<div class="vertical-math">${verticalCalc}</div>`);
+                steps.push(`<span class="step-number">${steps.length}</span>部分積をたし算すると: ${result}`);
+            }
+            
+            return {
+                answer: `${result}`,
+                steps: steps,
+                explanation: "筆算のかけ算では、下の数の各位と上の数をかけて、位をずらしながらたし算します。部分積を正しく計算するのがポイントです！"
+            };
+        }
+
+        // 筆算のわり算
+        function solveVerticalDivision(dividend, divisor) {
+            const quotient = Math.floor(dividend / divisor);
+            const remainder = dividend % divisor;
+            
+            let steps = [`<span class="step-number">1</span>筆算でわり算をしましょう！`];
+            
+            let verticalCalc = `       ${quotient}
+     ┌${'─'.repeat(dividend.toString().length + 2)}
+  ${divisor} │ ${dividend}
+       ${(divisor * quotient).toString().padStart(dividend.toString().length, ' ')}
+     ${'─'.repeat(dividend.toString().length + 2)}
+       ${remainder}`;
+            
+            steps.push(`<div class="vertical-math">${verticalCalc}</div>`);
+            
+            steps.push(`<span class="step-number">2</span>${dividend} ÷ ${divisor} を計算します`);
+            steps.push(`<span class="step-number">3</span>${divisor} × ${quotient} = ${divisor * quotient}`);
+            steps.push(`<span class="step-number">4</span>${dividend} - ${divisor * quotient} = ${remainder}`);
+            
+            if (remainder === 0) {
+                steps.push(`<span class="step-number">5</span>割り切れました！答えは ${quotient} です`);
+            } else {
+                steps.push(`<span class="step-number">5</span>商は ${quotient}、あまりは ${remainder} です`);
+            }
+            
+            return {
+                answer: remainder === 0 ? `${quotient}` : `${quotient} あまり ${remainder}`,
+                steps: steps,
+                explanation: "筆算のわり算では、割られる数を割る数で割って商を求め、残りがあまりになります。商×割る数+あまり=割られる数で確認できます！"
+            };
+        }
+
+        // 小数の計算
+        function solveDecimalCalculation(num1, num2, operator) {
+            let result, operation;
+            
+            switch(operator) {
+                case '+':
+                    result = (num1 + num2).toFixed(2);
+                    operation = 'たし算';
+                    break;
+                case '-':
+                    result = (num1 - num2).toFixed(2);
+                    operation = 'ひき算';
+                    break;
+                case '×':
+                    result = (num1 * num2).toFixed(2);
+                    operation = 'かけ算';
+                    break;
+                case '÷':
+                    result = (num1 / num2).toFixed(2);
+                    operation = 'わり算';
+                    break;
+                default:
+                    result = (num1 + num2).toFixed(2);
+                    operation = 'たし算';
+            }
+            
+            result = parseFloat(result).toString(); // 不要な0を除去
+            
+            let steps = [
+                `<span class="step-number">1</span>小数の${operation}をしましょう！`,
+                `<span class="step-number">2</span>小数点の位置をそろえて計算します`,
+                `<span class="step-number">3</span>${num1} ${operator} ${num2} = ${result}`
+            ];
+            
+            return {
+                answer: result,
+                steps: steps,
+                explanation: "小数の計算では、小数点の位置をそろえることが大切です。計算後も小数点の位置に注意しましょう！"
+            };
+        }
+
+        // 分数の計算（簡単なもの）
+        function solveFractionCalculation(expr) {
+            let steps = [
+                `<span class="step-number">1</span>分数の計算をしましょう！`,
+                `<span class="step-number">2</span>通分してから計算します`,
+                `<span class="step-number">3</span>約分できるかチェックします`
+            ];
+            
+            return {
+                answer: "計算結果（分数）",
+                steps: steps,
+                explanation: "分数の計算では、たし算・ひき算は通分が必要で、かけ算・わり算は分子同士、分母同士を計算します！"
+            };
+        }
+
+        // 面積の計算
+        function solveAreaCalculation(nums, shape) {
+            let steps = [`<span class="step-number">1</span>図形の面積を求めましょう！`];
+            let result, formula;
+            
+            if (nums.length >= 2) {
+                // 長方形として計算
+                result = nums[0] * nums[1];
+                formula = `たて × よこ = ${nums[0]} × ${nums[1]} = ${result}`;
+                steps.push(`<span class="step-number">2</span>長方形の面積の公式: ${formula}`);
+            } else if (nums.length >= 1) {
+                // 正方形として計算
+                result = nums[0] * nums[0];
+                formula = `一辺 × 一辺 = ${nums[0]} × ${nums[0]} = ${result}`;
+                steps.push(`<span class="step-number">2</span>正方形の面積の公式: ${formula}`);
+            }
+            
+            return {
+                answer: `${result} ㎡`,
+                steps: steps,
+                explanation: "面積は図形によって公式が違います。長方形は「たて×よこ」、正方形は「一辺×一辺」です！"
+            };
+        }
+
+        // 速さの計算
+        function solveSpeedCalculation(nums) {
+            let steps = [
+                `<span class="step-number">1</span>速さの問題を解きましょう！`,
+                `<span class="step-number">2</span>速さ = 道のり ÷ 時間 の公式を使います`
+            ];
+            
+            if (nums.length >= 2
