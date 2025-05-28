@@ -703,4 +703,84 @@ ${'─'.repeat(totalMaxLen + 2)}`;
                 `<span class="step-number">2</span>速さ = 道のり ÷ 時間 の公式を使います`
             ];
             
-            if (nums.length >= 2
+            if (nums.length >= 2) {
+                const distance = nums[0];
+                const time = nums[1];
+                const speed = (distance / time).toFixed(2);
+                steps.push(`<span class="step-number">3</span>${distance} ÷ ${time} = ${speed}`);
+                steps.push(`<span class="step-number">4</span>答えは ${speed} です`);
+                return {
+                    answer: `${speed}（速さ）`,
+                    steps: steps,
+                    explanation: "速さは「道のり ÷ 時間」で求めます。単位も確認しましょう！（例：km/h や m/分 など）"
+                };
+            } else {
+                steps.push(`<span class="step-number">3</span>道のりと時間が必要です。`);
+                return {
+                    answer: "計算できません",
+                    steps: steps,
+                    explanation: "速さを求めるには、道のりと時間の両方の情報が必要です。"
+                };
+            }
+        }
+
+        // カメラと撮影処理
+        window.onload = () => {
+            video = document.getElementById('video');
+            canvas = document.getElementById('canvas');
+            ctx = canvas.getContext('2d');
+
+            const startBtn = document.getElementById('startCamera');
+            const captureBtn = document.getElementById('captureBtn');
+            const analyzeBtn = document.getElementById('analyzeBtn');
+            const resultSection = document.getElementById('resultSection');
+            const loadingDiv = document.getElementById('loadingDiv');
+            const resultsDiv = document.getElementById('results');
+
+            startBtn.onclick = async () => {
+                try {
+                    const stream = await navigator.mediaDevices.getUserMedia({ video: true });
+                    video.srcObject = stream;
+                    captureBtn.disabled = false;
+                } catch (error) {
+                    alert('カメラを起動できませんでした。');
+                }
+            };
+
+            captureBtn.onclick = () => {
+                canvas.width = video.videoWidth;
+                canvas.height = video.videoHeight;
+                ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+                capturedImageData = canvas.toDataURL('image/png');
+                analyzeBtn.disabled = false;
+            };
+
+            analyzeBtn.onclick = async () => {
+                resultSection.style.display = 'block';
+                loadingDiv.style.display = 'block';
+                resultsDiv.innerHTML = '';
+
+                // ここでOCRやAI解析処理を呼び出す処理を実装する
+                // 仮のテスト出力（デモ用）
+                setTimeout(() => {
+                    loadingDiv.style.display = 'none';
+                    resultsDiv.innerHTML = `
+                        <div class="problem-text">345 + 678 を計算しよう！</div>
+                        <div class="solution">
+                            <div class="step-number">1</div> 筆算でたし算をしましょう！
+                            <div class="vertical-math">
+                              345<br>+678<br>────<br>1023
+                            </div>
+                            <div class="step-number">2</div> 一の位: 5 + 8 = 13 → 3 を書いて 1 をくり上げ
+                            <div class="step-number">3</div> 十の位: 4 + 7 + 1 = 12 → 2 を書いて 1 をくり上げ
+                            <div class="step-number">4</div> 百の位: 3 + 6 + 1 = 10 → 0 を書いて 1 をくり上げ
+                            <div class="step-number">5</div> 千の位に 1 を書く
+                        </div>
+                        <div class="answer">答え：1023</div>
+                    `;
+                }, 2000); // 擬似的な遅延
+            };
+        };
+    </script>
+</body>
+</html>
